@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickSort Visualizer</title>
+    <link rel="stylesheet" href="ionRangeSlider.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="main">
+        <canvas id="c"></canvas>
+        <div id="interface">
+            <div id="genElementCont">
+                <fieldset class="genElements" id="inputsCont">
+                    <legend>Elements</legend>
+                    <textarea id="inputs"></textarea>
+                </fieldset>
+                <button class="btn mt-1 genElements" id="visualize">Visualize</button>
+                <div class="text-center p-1 genElements">OR</div>
+                <button class="btn mt-1 genElements" id="generate">Generate Elements</button>
+    
+                <div class="genElements">
+                    <label class="desc block ionLabel">Amount: </label>
+                    <input type="range" id="genAmount">
+                </div>
+                <div class="toggle mt-1 genElements">
+                    <input type="checkbox" id="f1mode" checked="false">
+                    <label for="f1mode">F1 Mode</label>
+                </div>
+            </div>
+            <div class="toggle mt-1">
+                <input type="checkbox" id="cubeMode" checked="false">
+                <label for="cubeMode">Cube Heads</label>
+            </div>
+
+            <hr class="mt-1 mb-1">
+
+            <button class="btn mt-1" id="sortbtn">Sort</button>
+            <!-- TODO: PREVIOUS AND PAUSE FUNCTIONS -->
+            <button class="btn mt-1" id="shufflebtn"> Shuffle </button>
+            <button class="btn mt-1" id="contbtn" onclick="Handler.continue()">Continue</button>
+            <button class="btn btn-danger mt-1" id="stopbtn">Reset</button>
+            <div>
+                <label class="desc block ionLabel">Speed</label>
+                <input id="speedRange" type="range" min="0.5" max="10">
+            </div>
+        </div>
+    </div>
+</body>
+
+<!-- For Extra Effects -->
+<script type="x-shader/x-vertex" id="vertexShader">
+
+    varying vec3 vWorldPosition;
+
+    void main() {
+
+        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        vWorldPosition = worldPosition.xyz;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragmentShader">
+
+    uniform vec3 topColor;
+    uniform vec3 bottomColor;
+    uniform float offset;
+    uniform float exponent;
+
+    varying vec3 vWorldPosition;
+
+    void main() {
+
+        float h = normalize( vWorldPosition + offset ).y;
+        gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+
+    }
+
+</script>
+<script src="jqeury.min.js"></script>
+<script src="ionRangeSlider.min.js"></script>
+<script src="three.min.js"></script>
+<script src="CSS2DRenderer.js"></script>
+<script src="OrbitControls.js"></script>
+<script src="tweenjs.min.js"></script>
+<script src="util.js"></script>
+<script src="animation.js"></script>
+<script src="handler.js"></script>
+<script src="human.js"></script>
+<script src="quick.js"></script>
+<script src="f1.js"></script>
+<script src="dom.js"></script>
+<script src="main.js"></script>
+</html>
