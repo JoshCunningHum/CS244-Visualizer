@@ -11,7 +11,9 @@ class Human {
         UNDETERMINED: 0,
         CORRECT: 1,
         TEMP: 2,
-        PIVOT: 3
+        PIVOT: 3,
+        COMPARINGLEFT: 4,
+        COMPARINGRIGHT: 5
     }
 
     static default_height = 3;
@@ -345,6 +347,12 @@ class Human {
             case Human.state.PIVOT:
                 color = new THREE.Color(0xffd500);
                 break; 
+            case Human.state.COMPARINGLEFT:
+                color = new THREE.Color("orange");
+                break;
+            case Human.state.COMPARINGRIGHT:
+                color = new THREE.Color("aquamarine");
+                break;
             default:
                 null;
         }
@@ -568,6 +576,10 @@ class HumanArray{
         // this.arrange();
     }
 
+    set states(val){
+        this.forEach(item => item.state = val);
+    }
+
     shift(before, after, pauseAfter){
         if(before instanceof Human) before = before.index;
         if(after instanceof Human) after = after.index;
@@ -630,7 +642,7 @@ class HumanArray{
     }
     
     // visually arrange
-    arrange(){
+    arrange(pauseAfter = false){
         // Shadow the thing so only 1 calculation executed
         const calc_start = this.calc_start.add({x: -(Human.width + HumanArray.gap)});
 
@@ -649,6 +661,7 @@ class HumanArray{
         })
 
         Handler.addAnimation(movement, stopAnimState);
+        if(pauseAfter) Handler.addAnimation(Animation.pauseSequence);
     }
 
     saveState(){

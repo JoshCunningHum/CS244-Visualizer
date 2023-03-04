@@ -33,6 +33,8 @@ class QuickSort{
     }
 
     static sort(arr){
+        const compareDuration = 100;
+
         if(arr.length == 0) return; // If no items dugh
         if(arr.level == 0) arr.fixIndex().saveState();
 
@@ -63,11 +65,61 @@ class QuickSort{
             // find iRight and iLeft Items
             // TODO: Do the ray tracing animation here
             for(let i = 0; i < arr.length - 1; i++){
-                const [l, r] = [arr.get(i).value, arr.get(arr.length - (i + 2)).value];
-                if(iLeft == null && l > pivot) iLeft = i;
-                if(iRight == null && r < pivot) iRight = arr.length - (i + 2);
+                const [lI, rI] = [i, arr.length - (i + 2)],
+                      [l, r] = [arr.get(lI).value, arr.get(rI).value],
+                      [hL, hR] = [arr.get(lI), arr.get(rI)],
+                      isPast = lI >= rI;
+
+                // iLeft (bigger than pivot)
+                if(iLeft == null){
+                    
+                    // set it's color state to comparing
+                    Handler.addAnimation(new Animation(() => {
+                        hL.state = Human.state.COMPARINGLEFT;
+                    }, compareDuration, 0, 0));
+
+                    if(l > pivot) iLeft = lI;
+                }
+
+                // iRight (smaller than pivot)
+                if(iRight == null){
+                    
+                    // set it's color state to comparing
+                    Handler.addAnimation(new Animation(() => {
+                        hR.state = Human.state.COMPARINGRIGHT;
+                    }, compareDuration, 0, 0));
+
+                    if(r < pivot) iRight = rI;
+                }
+
+                // If Either of them is still null, make it go back to undetermined
+                if(iLeft == null) {
+                    Handler.addAnimation(new Animation(() => {
+                        hL.state = Human.state.UNDETERMINED;
+                    }, 10, 0, 0));
+                }
+
+                if(iRight == null && !isPast){
+                    Handler.addAnimation(new Animation(() => {
+                        hR.state = Human.state.UNDETERMINED;
+                    }, 10, 0, 0));
+                }
+
+
                 if(iRight && iLeft) break; // Found already the two
             }
+
+            const hLeft = arr.get(iLeft),
+                  hRight = arr.get(iRight);
+
+            // Set left and right state to compare left (since it get overriden)
+            Handler.addAnimation(new Animation(() => {
+                hLeft.state = Human.state.COMPARINGLEFT;
+                hRight.state = Human.state.COMPARINGRIGHT;
+            }))
+
+            // Add a pausing animation after comparing
+            Handler.addAnimation(Animation.pauseSequence);
 
             if(iLeft > iRight) break; // means that we found the position for the pivot
 
@@ -77,6 +129,12 @@ class QuickSort{
                 break;
             }
             arr.swap(iLeft, iRight);
+
+            // set both items at iLeft and iRight back to undetermined
+            Handler.addAnimation(new Animation(() => {
+                hLeft.state = Human.state.UNDETERMINED;
+                hRight.state = Human.state.UNDETERMINED;
+            }, 10, 0, 0))
         }
 
         if(arr.get(iLeft) != arr.get(arr.length - 1))arr.swap(iLeft, arr.length - 1); // swap pivot with the item from left
@@ -94,7 +152,10 @@ class QuickSort{
         left.pos.add({z: -g});
         right.pos.add({z: -g});
 
-        // console.log(left.values);
+        // Set all Left indexes to UNDETERMINED
+        Handler.addAnimation(new Animation(() => {
+            left.states = Human.state.UNDETERMINED;
+        }, 10, 0, 0));
         
         // Set Right Indexes to TEMP (Gray Color)
         right.forEach(item => {
@@ -106,14 +167,14 @@ class QuickSort{
         // If left should have a sort check, then sort
         if(left.length > 1){
             // Make them go forward
-            left.arrange();
+            left.arrange(true);
             // Sort
             this.sort(left);
             // Once sorted, make its parent array order fixed
             left.fixParent();
             // Make them go backward
             left.pos.add({z: g});
-            left.arrange();
+            left.arrange(true);
         }
 
         // Make all left go green
@@ -134,14 +195,14 @@ class QuickSort{
         // If right should have a sort check, then sort
         if(right.length > 1){
             // Make them go forward
-            right.arrange();
+            right.arrange(true);
             // Sort
             this.sort(right); 
             // Once sorted, make its parent array order fixed
             right.fixParent();
             // Make them go backward
             right.pos.add({z: g});
-            right.arrange();
+            right.arrange(true);
         }
 
         // Make them all go green
