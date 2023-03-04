@@ -22,7 +22,7 @@
                 <button class="btn mt-1 genElements" id="generate">Generate Elements</button>
     
                 <div class="genElements">
-                    <label class="desc block ionLabel">Amount: </label>
+                    <label class="desc block ionLabel">Amount to generate</label>
                     <input type="range" id="genAmount">
                 </div>
                 <div class="toggle mt-1 genElements">
@@ -38,7 +38,6 @@
             <hr class="mt-1 mb-1">
 
             <button class="btn mt-1" id="sortbtn">Sort</button>
-            <!-- TODO: PREVIOUS AND PAUSE FUNCTIONS -->
             <button class="btn mt-1" id="shufflebtn"> Shuffle </button>
             <button class="btn mt-1" id="contbtn" onclick="Handler.continue()">Continue</button>
             <button class="btn btn-danger mt-1" id="stopbtn">Reset</button>
@@ -46,6 +45,14 @@
                 <label class="desc block ionLabel">Speed</label>
                 <input id="speedRange" type="range" min="0.5" max="10">
             </div>
+
+            <hr class="mt-1 mb-1">
+
+            <select class="mt-1" id="humanList">
+                <option value="null">--- Select Human ---</option>
+            </select>
+            <button class="btn mt-1" id="followTarget">Follow</button>
+            <button class="btn btn-danger mt-1" id="stopFollow">Stop Following</button>
         </div>
     </div>
 </body>

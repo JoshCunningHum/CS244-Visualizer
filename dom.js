@@ -67,6 +67,9 @@ $("#visualize").on("click", function(){
 
     // add it to human array
     list.add(...humans);
+
+    // refresh following list
+    list._updateFollower();
 })
 
 $("#sortbtn").on("click", function(){
@@ -86,11 +89,12 @@ $("#stopbtn").on("click", function(){
     const revealing = Handler.a.queue.pop();
     Handler.a.queue.length = 0;
     Handler.addAnimation(revealing);
-    Handler.a.ongoing.forEach(anim => anim.setPosition(anim.duration));
+    if(Handler.a.ongoing) Handler.a.ongoing.forEach(anim => anim.setPosition(anim.duration));
     const savedTimeMult = Handler.a.config.timeMult;
     Handler.a.config.timeMult = 0.1;
     list.backToState();
     Handler.a.config.timeMult = savedTimeMult;
+    Handler.continue();
 })
 
 $("#shufflebtn").on("click", () => {list.shuffle()})
@@ -113,6 +117,9 @@ $("#generate").on("click", function(){
 
         // console.log(indexes.map(e => F1_enator(e)));
         list.add(...indexes.map(e => F1_enator(e)));
+
+        // refresh following list
+        list._updateFollower();
     }else{
         $("#inputs").val(Array(amount).fill(0).map(x => {
             return Util.genInt(1, 99);
@@ -122,4 +129,30 @@ $("#generate").on("click", function(){
         $("#visualize").click()
     }
 
+})
+
+$("#stopFollow").hide();
+$("#followTarget").on("click", function(){
+    const target = $("#humanList").val();
+    if(target == "null") return;
+
+    // get the human
+    const human = list.h.find(e => e.id == target);
+
+    // set that to focusing on handler  
+    Handler.follow(human.body);
+
+    $("#stopFollow").show();
+    $(this).hide();
+    $("#humanList").hide();
+
+    // hide generating elements
+    $("#genElementCont").hide();
+})
+
+$("#stopFollow").on("click", function(){
+    $(this).hide();
+    $("#humanList, #followTarget").show();
+    Handler.unFollow();
+    if(Handler.a.queue.length == 0) $("#genElementCont").show();
 })

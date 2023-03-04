@@ -152,7 +152,6 @@ class Handler{
         // Set initial camera position
         this.cam.position.set(-14, 9, 17);
         this.cam.lookAt(0, 0, 10);
-        this.controls.target.set(0, 0, 10);
         this.controls.update();
 
         // For rendering
@@ -177,6 +176,43 @@ class Handler{
         })
     }
 
+    static focusing = null;
+
+    static follow(obj){
+        // set last position and quaternion of camera
+        this.savedPosition = this.cam.position.clone();
+        this.savedQuaternion = this.cam.quaternion.clone();
+
+        // creates a fake camera inside the object
+        let fake_cam = this.cam.clone();
+        fake_cam.name = "FOCUSING_CAM";
+
+        // set fake cam positions to 0, 0, 5
+        fake_cam.position.set(0, 0, 5);
+        fake_cam.rotation.set(0, 0, 0);
+
+        // add the fake_cam to the object only if it doesn't have any fake_cam
+        if(!obj.children.some(e => e.name == "FOCUSING_CAM")){
+            console.log("ADDED TO BODY");
+            obj.add(fake_cam);
+        }else{
+            // If there is already a fake cam, then
+            fake_cam = obj.children.find(e => e.name == "FOCUSING_CAM");
+        }
+
+        // const helper = new THREE.CameraHelper(fake_cam);
+        // this.scene.add(helper);
+
+        // set fake_cam as what the handler is currently focusing
+        this.focusing = fake_cam;
+
+    }
+
+    static unFollow(){
+        // just set the focusing to null
+        this.focusing = null;
+    }
+
     static pause = () => this.a.pause();
     static continue = () => this.a.continue();
 
@@ -193,7 +229,37 @@ class Handler{
         this.a.queue.push(...as);
     }
 
+    static _wasFocusingBefore = false;
+
+    static savedPosition = null;
+    static savedQuaternion = null;
+
     static animate(){
+        // if we are currently focusing on something, then copy the values
+        if(this.focusing != null){
+            // position
+            let targetPosition = new THREE.Vector3();
+            this.focusing.getWorldPosition(targetPosition);
+            this.cam.position.copy(targetPosition);
+            // quaternion (rotation)
+            let targetQuaternion = new THREE.Quaternion();
+            this.focusing.getWorldQuaternion(targetQuaternion);
+            this.cam.quaternion.copy(targetQuaternion);
+            // update controls
+            // this.controls.update();
+
+            this._wasFocusingBefore = true;
+        }else if(this._wasFocusingBefore){
+            this._wasFocusingBefore = false;
+            this.cam.position.copy(this.savedPosition);
+            this.cam.quaternion.copy(this.savedQuaternion);
+            
+            this.savedPosition = null;
+            this.savedQuaternion = null;
+
+            // this.controls.update();
+        }
+
         this.renderer.render(this.scene, this.cam);
         this.label_renderer.render(this.scene, this.cam);
         this.a.check();

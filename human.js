@@ -201,6 +201,11 @@ class Human {
         return this.body.children.slice(3, 5);
     }
 
+    get cam(){
+        // for following purposes
+        return this.body.children.find(e => e.name == "FOCUSING_CAM");
+    }
+
     _resetRotations(){
         const [lA, rA] = this.arms,
               [lL, rL] = this.legs;
@@ -419,6 +424,7 @@ class HumanArray{
     deleteAll(){
         this.forEach(x => x.delete());
         this.h.length = 0;
+        this._updateFollower();
     }
 
     get length(){
@@ -709,4 +715,20 @@ class HumanArray{
         cb.bind(this)();
     }
     
+    _updateFollower(){
+        const follower = $("#humanList");
+        follower.empty();
+
+        const names = this.h.map((item) => {
+            let name = `${item.value} - ${item.id}`;
+            if(item.name) name = `${item.name.split(" ").reverse().join(" ")}`;
+            name += `|${item.id}`;
+            return name;
+        }).sort();
+
+        names.forEach(item => {
+            const [name, index] = item.split("|");
+            follower.append(`<option value="${index}">${name}</option>`);
+        })
+    }
 }

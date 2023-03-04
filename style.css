@@ -218,6 +218,11 @@ fieldset legend {
     resize: vertical;
 }
 
+#humanList {
+    width: 100%;
+    padding: .25rem;
+}
+
 /* ION RANGE SLIDER MODIFICATIONS */
 
 .irs-handle {
