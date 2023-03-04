@@ -50,6 +50,9 @@ $("#visualize").on("click", function(){
     const values = $("#inputs").val().trim().split(/\s/g); // all type of white space
     if(values.length == 0) return;
 
+    $(this).prop("disabled", true);
+    createjs.Tween.get(this).wait(250).call(() => $(this).prop("disabled", false));
+
     // deletes all current humans
     list.deleteAll();
 
@@ -71,33 +74,47 @@ $("#visualize").on("click", function(){
 
 $("#sortbtn").on("click", function(){
     $("#shufflebtn, #genElementCont").hide();
-    $("#stopbtn, #contbtn").show();
+    $(".sqenceActions").show();
     $(this).hide();
+
+    // Enables previous button
+    Handler.a.savingMode = true;
+
+    console.time("sorting");
     QuickSort.sort(list);
+    console.timeEnd("sorting");
+
     Handler.addAnimation(new Animation(() => {
         $("#shufflebtn, #genElementCont").show();
-        $("#stopbtn, #contbtn").hide();
+        $(".sqenceActions").hide();
         $(this).show();
+
+        // Disables previous button
+        Handler.a.savingMode = false;
     }, 10, 0, 0));
 })
 
-$("#stopbtn, #contbtn").hide();
+// TODO: Show reset after sorting
+$(".sqenceActions").hide();
 $("#stopbtn").on("click", function(){
     const revealing = Handler.a.queue.pop();
     Handler.a.queue.length = 0;
     Handler.addAnimation(revealing);
-    Handler.a.ongoing.forEach(anim => anim.setPosition(anim.duration));
+    if(Handler.a.ongoing) Handler.a.ongoing.forEach(anim => anim.setPosition(anim.duration));
     const savedTimeMult = Handler.a.config.timeMult;
     Handler.a.config.timeMult = 0.1;
     list.backToState();
     Handler.a.config.timeMult = savedTimeMult;
+    Handler.continue();
 })
 
 $("#shufflebtn").on("click", () => {list.shuffle()})
-
 $("#generate").on("click", function(){
     const f1Mode = $("#f1mode").prop("checked"),
           amount = $("#genAmount").data("ionRangeSlider").result.from;
+
+    $(this).prop("disabled", true);
+    createjs.Tween.get(this).wait(250).call(() => $(this).prop("disabled", false));
 
     // deletes all current humans
     list.deleteAll();

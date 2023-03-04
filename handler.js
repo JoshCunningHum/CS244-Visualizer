@@ -179,6 +179,8 @@ class Handler{
 
     static pause = () => this.a.pause();
     static continue = () => this.a.continue();
+    static prev = () => this.a.prev();
+    static aniSafe = () => this.a.isSafe();
 
     static add(obj){
         this.runtime_objects.push(obj);
@@ -190,6 +192,8 @@ class Handler{
     }
 
     static addAnimation(...as){
+        let label = (typeof as[as.length - 1] == "string") ? as.pop() : null;
+        as.forEach(anim => anim instanceof Array ? anim.forEach(i => i.label(label)) : anim.label(label));
         this.a.queue.push(...as);
     }
 

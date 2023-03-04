@@ -84,7 +84,7 @@ class QuickSort{
         const t = arr.get(iLeft); // pivot, making it green
         Handler.addAnimation((new Animation(() => {
             t.state = Human.state.CORRECT;
-        }, 10, 0, 0)).togglePause());
+        }, 10, 0, 0)).togglePause(), "pivot-go-green");
 
         // RECURSION PART
         const [left, mid, right] = arr.separate(iLeft),
@@ -97,11 +97,9 @@ class QuickSort{
         // console.log(left.values);
         
         // Set Right Indexes to TEMP (Gray Color)
-        right.forEach(item => {
-            Handler.addAnimation(new Animation(() => {
-                item.state = Human.state.TEMP; 
-            }, 10, 0, 0))
-        })
+        Handler.addAnimation(new Animation(() => {
+            right.states = Human.state.TEMP;
+        }, 10, 0, 0), "right-go-temp");
 
         // If left should have a sort check, then sort
         if(left.length > 1){
@@ -117,20 +115,16 @@ class QuickSort{
         }
 
         // Make all left go green
-        left.forEach(item => {
-            Handler.addAnimation(new Animation(() => {
-                item.state = Human.state.CORRECT;
-            }, 10, 0, 0));
-        })
+        Handler.addAnimation(new Animation(() => {
+            left.states = Human.state.CORRECT;
+        }, 10, 0, 0), "left-go-green");
 
 
         // Unset right indexes that was set to temp to undetermined
-        right.forEach(item => {
-            Handler.addAnimation(new Animation(() => {
-                item.state = Human.state.UNDETERMINED; 
-            }, 10, 0, 0))
-        })
-
+        Handler.addAnimation(new Animation(() => {
+            right.states = Human.state.UNDETERMINED;
+        }), 10, 0, 0);
+        
         // If right should have a sort check, then sort
         if(right.length > 1){
             // Make them go forward

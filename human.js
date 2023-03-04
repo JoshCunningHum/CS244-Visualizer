@@ -14,6 +14,10 @@ class Human {
         PIVOT: 3
     }
 
+    static bodyInstances = [];
+    static getBody = (id) => this.bodyInstances.find(e => e.id == id).mesh;
+    static addBody = (id, mesh) => this.bodyInstances.push({id: id, mesh: mesh});
+
     static default_height = 3;
 
     static anim = {
@@ -35,6 +39,17 @@ class Human {
             head.remove(mesh);
         })
         Handler._refreshLabels();
+    }
+
+    bodyID = null;
+
+    set body(mesh){
+        this.bodyID = Util.genString(16);
+        Human.addBody(this.bodyID, mesh);
+    }
+
+    get body(){
+        return Human.getBody(this.bodyID);
     }
 
     // scale base on height if enabled
@@ -210,7 +225,7 @@ class Human {
         lL.rotation.set(0, 0, 0);
         rL.rotation.set(0, 0, 0);
 
-        this.body.rotation.set(0, 0, 0);
+        // this.body.rotation.set(0, 0, 0);
     }
 
     set animation_state(val){
@@ -239,44 +254,45 @@ class Human {
         }
     }
 
-    _getAnimationStateChange(state){
-        return new Animation(() => {
-            this.animation_state = state;
-        }, 10, 0, 0);
-    }
-
-    _anim(){
+    _anim() {
         const [lA, rA] = this.arms,
-              [lL, rL] = this.legs;
-        
+            [lL, rL] = this.legs;
 
-        switch(this.animation_state){
+        if(
+            lA == undefined ||
+            rA == undefined ||
+            lL == undefined ||
+            rL == undefined
+        ) return;
+
+        const mnias = this.idle.minArmSway,
+            mxias = this.idle.maxArmSway,
+            idiff = mxias - mnias,
+            mnwas = this.walking.minArmSway,
+            mxwas = this.walking.maxArmSway,
+            mnwls = this.walking.minLegSway,
+            mxwls = this.walking.maxLegSway,
+            wAdiff = mxwas - mnwas,
+            wLdiff = mxwls - mnwls;
+
+        switch (this.animation_state) {
             case Human.anim.IDLE:
-                const mnias = this.idle.minArmSway,
-                      mxias = this.idle.maxArmSway,
-                      idiff = mxias - mnias;
 
                 const calc_idle_sway = Util.deg2Rad(mnias + idiff * (this.kf / 100));
 
-                lA.rotation.set( calc_idle_sway, 0, 0);
-                rA.rotation.set( -calc_idle_sway, 0, 0);
+                lA.rotation.set(calc_idle_sway, 0, 0);
+                rA.rotation.set(-calc_idle_sway, 0, 0);
                 break;
             case Human.anim.WALKING:
-                const mnwas = this.walking.minArmSway,
-                      mxwas = this.walking.maxArmSway,
-                      mnwls = this.walking.minLegSway,
-                      mxwls = this.walking.maxLegSway,
-                      wAdiff = mxwas - mnwas,
-                      wLdiff = mxwls - mnwls;
 
                 const calc_walk_arm_sway = Util.deg2Rad(mnwas + wAdiff * (this.keyframe / 100)),
                       calc_walk_leg_sway = Util.deg2Rad(mnwls + wLdiff * (this.keyframe / 100));
 
                 lA.rotation.set(calc_walk_arm_sway, 0, 0);
-                rA.rotation.set( -calc_walk_arm_sway, 0, 0);
+                rA.rotation.set(-calc_walk_arm_sway, 0, 0);
                 lL.rotation.set(calc_walk_leg_sway, 0, 0);
                 rL.rotation.set(-calc_walk_leg_sway, 0, 0);
-                      
+
                 break;
             case Human.anim.DANCING:
                 break;
@@ -304,7 +320,11 @@ class Human {
 
         return new Animation(obj => {
             this.body.position.set(...this.pos.arr);
-        }, duration).from(this.pos).to(pos);
+        }, duration).from(this.pos).to(pos).first(() => {
+            this.animation_state = Human.anim.WALKING;
+        }).done(() => {
+            this.animation_state = Human.anim.IDLE;
+        });
     }
 
     _rotateBuffer = 0;
@@ -402,6 +422,11 @@ class HumanArray{
         this.arrange();
     }
 
+    set states(val){
+        // set states of all items
+        this.forEach(item => item.state = val);
+    }
+
     delete(...Humans){
         const byIndex = typeof Humans[0] == "number";
 
@@ -419,6 +444,7 @@ class HumanArray{
     deleteAll(){
         this.forEach(x => x.delete());
         this.h.length = 0;
+        Human.bodyInstances.length = 0;
     }
 
     get length(){
@@ -515,9 +541,6 @@ class HumanArray{
             // For Animation Purposes
             l._rotate({angle: -180, duration: 50}),
             
-            f._getAnimationStateChange(Human.anim.WALKING),
-            l._getAnimationStateChange(Human.anim.WALKING),
-
             // First Phase
             f._move({pos: former.clone.add({z: s}), duration: d}),
             l._move({pos: latter.clone.add({z: -s}), duration: d}),
@@ -536,23 +559,21 @@ class HumanArray{
             f._move({pos: latter.clone.add({z: 0}), duration: d}),
             l._move({pos: former.clone.add({z: 0}), duration: d}),
             
-
-            // For Animation Purposes
-            f._getAnimationStateChange(Human.anim.IDLE),
-            l._getAnimationStateChange(Human.anim.IDLE),
-
-            
             f._rotate({angle: 0, duration: 50}),
         ];
 
         // For pausing actions
         if(pauseAfter) movement.push(Animation.pauseSequence);
 
+        // Set all animations to one group with random ID
+        const groupID = Util.genString(8);
+        movement.forEach(anim => anim.group(groupID));
+
         // Seperate each phase
-        Handler.addAnimation(movement.shift());
-        for(let i = 0; i < 3 + 4; i++) Handler.addAnimation(movement.splice(0, 2));
-        Handler.addAnimation(movement.shift());
-        if(pauseAfter) Handler.addAnimation(movement.splice(0, 1));
+        Handler.addAnimation(movement.shift(), "swap-first-rotate");
+        for(let i = 0; i < 3 + 2; i++) Handler.addAnimation(movement.splice(0, 2), `swap-phase-${i + 1}`);
+        Handler.addAnimation(movement.shift(), "swap-last-rotate");
+        if(pauseAfter) Handler.addAnimation(movement.splice(0, 1), "swap-pause-anim");
 
         // reassignment
         [this.h[pos1], this.h[pos2]] = [this.h[pos2], this.h[pos1]];
@@ -635,17 +656,14 @@ class HumanArray{
         
         this.h.forEach((h, i) => {
             calc_start.add({x: Human.width + HumanArray.gap});
+
             movement.push(h._move({
                 pos: calc_start.clone,
                 duration: 100
-            }), h._getAnimationStateChange(Human.anim.WALKING));
+            }));
         })
 
-        const stopAnimState = this.h.map(i => {
-            return i._getAnimationStateChange(Human.anim.IDLE);
-        })
-
-        Handler.addAnimation(movement, stopAnimState);
+        Handler.addAnimation(movement);
     }
 
     saveState(){
@@ -663,6 +681,7 @@ class HumanArray{
 
         this.fixIndex();
         this.arrange();
+        this.forEach(e => e.state = Human.state.UNDETERMINED);
     }
 
     backToState(){

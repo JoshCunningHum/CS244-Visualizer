@@ -40,8 +40,11 @@
             <button class="btn mt-1" id="sortbtn">Sort</button>
             <!-- TODO: PREVIOUS AND PAUSE FUNCTIONS -->
             <button class="btn mt-1" id="shufflebtn"> Shuffle </button>
-            <button class="btn mt-1" id="contbtn" onclick="Handler.continue()">Continue</button>
-            <button class="btn btn-danger mt-1" id="stopbtn">Reset</button>
+
+            <!-- Sequence Buttons -->
+            <button class="btn mt-1  sqenceActions" id="contbtn" onclick="Handler.continue()">Continue</button>
+            <button class="btn btn-warning mt-1 sqenceActions" id="prevbtn" onclick="Handler.prev()">Previous</button>
+            <button class="btn btn-danger mt-1 sqenceActions" id="stopbtn">Reset</button>
             <div>
                 <label class="desc block ionLabel">Speed</label>
                 <input id="speedRange" type="range" min="0.5" max="10">

@@ -14,6 +14,11 @@ class Util{
     static heightCalc = (val) => 3 * (val / 160)**2;
 
     static genInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
+    static objCopy = (obj) => {
+        const copy = {};
+        $.extend(true, copy, obj);
+        return copy;
+    }
 }
 
 class Vector3D {
