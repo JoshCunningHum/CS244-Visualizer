@@ -3,6 +3,10 @@ class Handler{
     static lights = [];
     static initial_objects = {};
     static texture = new THREE.TextureLoader();
+    static loadedTextures = [];
+
+    static addTexture = (fileName) => this.loadedTextures.push({texture: this.texture.load(`assets/${fileName}.jpg`), key: fileName});
+    static getTexture = (fileName) => this.loadedTextures.find(e => e.key == fileName).texture;
 
     static runtime_objects = [];
 

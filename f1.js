@@ -111,11 +111,15 @@ const F1 = [{
     height: "165"
 },];
 
+const parseName = (name) => {
+    return `${name[0]}. ${name.split(" ").pop()}`;
+}
+
 const F1_enator = (index) => {
     const s = F1[index], h = parseFloat(s.height);
 
     return new Human({
-        name: `${s.name[0]}. ${s.name.split(" ").pop()}`,
+        name: parseName(s.name),
         value: s.height,
         height: Util.heightCalc(h)
     });

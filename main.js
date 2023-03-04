@@ -12,6 +12,15 @@ document.addEventListener("DOMContentLoaded", () => {
         animator: new AnimationQueue({})
     })
 
+    // LOAD TEXTURES FIRST
+    F1.forEach(item => {
+        const name = parseName(item.name).split(" ").join("");
+        // Sphere version
+        Handler.addTexture(name);
+        // Cube Version
+        Handler.addTexture(name + "_C");
+    })
+
     // F1.forEach(s => {
     //     const disp = `${s.name[0]}. ${s.name.split(" ").pop()}`,
     //           h = parseInt(s.height);

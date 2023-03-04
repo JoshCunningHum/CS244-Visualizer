@@ -54,11 +54,11 @@ class Human {
                   F = new THREE.Mesh(GF, MF);
                   
             mesh.add(F);
-            F.material.map = template.texture;
+            F.material.map = Handler.getTexture(template.name.replace(" ", "") + "_C");
             F.position.set(this.width / 2 + 0.001, 0, 0);
             F.rotation.set(0, Util.deg2Rad(90), 0);
         }else if(template.hasTexture){
-            mesh.material.map = template.texture;
+            mesh.material.map = Handler.getTexture(template.name.replace(" ", ""));
         }
         mesh.rotation.set(0, -Util.deg2Rad(90), 0);
         mesh.position.set(0, template.height / 4 + this.width / 2, 0);
@@ -161,9 +161,6 @@ class Human {
         this.id = id || Util.genString(10);
         this.height = height || 3;
         this.hasTexture = hasTexture;
-
-        // textures
-        this.texture = hasTexture ? Handler.texture.load(`assets/${name.split(" ").join("")}${Human.cubeHead ? "_C" : ""}.jpg`) : null;
 
         // parts
         this.body = Human.parts(this);
