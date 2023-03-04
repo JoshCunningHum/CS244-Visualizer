@@ -1,5 +1,5 @@
 class Util{
-
+    static heightDIffIntensity = 3;
     static genChar = () => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".charAt(Math.random()*62|0);
 
     static genString(length){
@@ -11,7 +11,7 @@ class Util{
     
     static saneModulos = (a, b) => ((a % b) + b) % b;
 
-    static heightCalc = (val) => 3 * (val / 160)**2;
+    static heightCalc = (val) => 3 * (val / 160)**this.heightDIffIntensity;
 
     static genInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 }

@@ -50,6 +50,9 @@ $("#visualize").on("click", function(){
     const values = $("#inputs").val().trim().split(/\s/g); // all type of white space
     if(values.length == 0) return;
 
+    $(this).prop("disabled", true);
+    createjs.Tween.get(this).wait(250).call(() => $(this).prop("disabled", false));
+
     // deletes all current humans
     list.deleteAll();
 
@@ -76,7 +79,11 @@ $("#sortbtn").on("click", function(){
     $("#shufflebtn, #genElementCont").hide();
     $("#stopbtn, #contbtn").show();
     $(this).hide();
+
+    console.time("sorting");
     QuickSort.sort(list);
+    console.timeEnd("sorting");
+
     Handler.addAnimation(new Animation(() => {
         $("#shufflebtn, #genElementCont").show();
         $("#stopbtn, #contbtn").hide();
@@ -102,6 +109,9 @@ $("#shufflebtn").on("click", () => {list.shuffle()})
 $("#generate").on("click", function(){
     const f1Mode = $("#f1mode").prop("checked"),
           amount = $("#genAmount").data("ionRangeSlider").result.from;
+
+    $(this).prop("disabled", true);
+    createjs.Tween.get(this).wait(250).call(() => $(this).prop("disabled", false));
 
     // deletes all current humans
     list.deleteAll();
