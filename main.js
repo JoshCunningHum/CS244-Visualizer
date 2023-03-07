@@ -21,6 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
         Handler.addTexture(name + "_C");
     })
 
+    // By default, group members are already generated
+    const groupMates = F1.map((e, i) => `${i}|${e.groupMate ? 1 : 0}`).filter(e => e.split("|")[1] == "1").map(index => F1_enator(parseInt(index)));
+
+    list.add(...groupMates);
+    // refresh following list
+    list._updateFollower();
+
     // F1.forEach(s => {
     //     const disp = `${s.name[0]}. ${s.name.split(" ").pop()}`,
     //           h = parseInt(s.height);
