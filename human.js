@@ -14,6 +14,7 @@ class Human {
         PIVOT: 3,
         COMPARINGLEFT: 4,
         COMPARINGRIGHT: 5
+
     }
 
     static default_height = 3;
@@ -22,6 +23,8 @@ class Human {
         IDLE: 0,
         WALKING: 1,
         DANCING: 2
+        
+        // TODO: Add more dancing states
     }
 
     value = 1;
@@ -29,8 +32,8 @@ class Human {
     height = 3;
 
     _headDispose(){
-        const head = this.body.children.find(e => e.name == "HEAD");
-        this.body.remove(head);
+        const head = this.head;
+        this.upper.remove(head);
         head.material.dispose();
         head.geometry.dispose();
         head.children.forEach(mesh => {
@@ -54,7 +57,7 @@ class Human {
             const GF = new THREE.PlaneGeometry(this.width, this.width),
                   MF = new THREE.MeshLambertMaterial({color: "bisque"}),
                   F = new THREE.Mesh(GF, MF);
-                  
+
             mesh.add(F);
             F.material.map = Handler.getTexture(template.name.replace(" ", "") + "_C");
             F.position.set(this.width / 2 + 0.001, 0, 0);
@@ -74,7 +77,7 @@ class Human {
 
     changeHead(){
         this._headDispose();
-        this.body.add(Human.head(this));
+        this.upper.add(Human.head(this));
         this.state = this.state;
     }
 
@@ -91,6 +94,9 @@ class Human {
         rMesh. receiveShadow = true;
 
         lMesh.geometry.translate(0, -template.height / 4, 0);
+
+        lMesh.name = "L_ARM";
+        rMesh.name = "R_ARM";
 
         lMesh.position.set(-(this.width * 3 / 4), template.height / 4, 0);
         rMesh.position.set((this.width * 3 / 4), template.height / 4, 0);
@@ -110,6 +116,8 @@ class Human {
         rMesh.castShadow = true;
         rMesh. receiveShadow = true;
 
+        lMesh.name = "L_LEG";
+        rMesh.name = "R_LEG";
         lMesh.geometry.translate(0, -template.height / 4, 0);
 
         lMesh.position.set(-(this.width / 4), -template.height / 4, 0);
@@ -118,17 +126,25 @@ class Human {
         return [lMesh, rMesh];
     }
 
-    static parts(template){
+    static body(template){
         const G = new THREE.BoxGeometry(this.width, template.height / 2, this.thick),
-              M = new THREE.MeshLambertMaterial({color: "bisque"});
+              M = new THREE.MeshLambertMaterial({color: "bisque"}),
+              mesh = new THREE.Mesh(G, M);
 
-        const mesh = new THREE.Mesh(G, M);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        mesh.name = "UPPER_BODY";
 
-        mesh.add(this.head(template), ...this.arms(template), ...this.legs(template));
+        mesh.add(this.head(template), ...this.arms(template));
 
         return mesh;
+    }
+
+    static parts(template){
+        const container = new THREE.Group();
+        container.add(this.body(template), ...this.legs(template));
+
+        return container;
     }
 
     static genTextMesh(text, classes = ["label"], pos){
@@ -192,13 +208,19 @@ class Human {
         return calc;
     }
 
+    get upper(){
+        return this.body.children.find(e => e.name == "UPPER_BODY");
+    }
+
     get arms(){
-        return this.body.children.slice(1, 3);
+        // console.log(this.upper);
+        return this.upper.children.filter(e => e.name != "HEAD");
     }
 
     get legs(){
-        return this.body.children.slice(3, 5);
+        return this.body.children.filter(e => e.name != "UPPER_BODY");
     }
+
 
     get cam(){
         // for following purposes
@@ -357,11 +379,25 @@ class Human {
                 null;
         }
 
-        this.body.material.color.set(color);
         this.body.children.forEach(e => {
-            if((e.isMesh && e.name != "HEAD") || 
-               (e.name == "HEAD" && Human.cubeHead)){
-                e.material.color.set(color);
+            switch(e.name){
+                case "UPPER_BODY": // arms, head, and body
+                    e.children.forEach(part => {
+                        switch(part.name){
+                            case "HEAD":
+                                if(Human.cubeHead) part.material.color.set(color);
+                                break;
+                            case "L_ARM":
+                            case "R_ARM":
+                                part.material.color.set(color);
+                                break;
+                        }
+                    })
+                    // WARNING
+                case "L_LEG":
+                case "R_LEG":
+                    e.material.color.set(color);
+                    break;
             }
         })
     }
@@ -376,15 +412,26 @@ class Human {
         Handler.delete(this.body);
         this.body.children.forEach(e => {
             this.body.remove(e);
-            if(e.isMesh){
-                e.material.dispose();
-                e.geometry.dispose();
+
+            switch(e.name){
+                case "UPPER_BODY": // arms, head, and body
+                    e.children.forEach(part => {
+                        e.remove(part);
+                        part.material.dispose();
+                        part.geometry.dispose();
+                    })
+                    // WARNING
+                case "L_LEG":
+                case "R_LEG":
+                    e.material.dispose();
+                    e.geometry.dispose();
+                    break;
             }
+            
         });
-        this.body.material.dispose();
-        this.body.geometry.dispose();
         
         Handler._refreshLabels();
+        console.log("REACHED HERE!");
     }
 }
 
