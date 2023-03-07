@@ -187,3 +187,8 @@ const SKIP = {
         if(Handler.a.ongoing?.name == `pause_${type}`) Handler.continue();
     })
 })
+
+// Disclaimer
+$("#closeDisclaimer").on("click", function(){
+    $(this).parent().hide();
+})

@@ -223,6 +223,27 @@ fieldset legend {
     padding: .25rem;
 }
 
+#disclaimer{
+    position: absolute;
+    padding: 0 20%;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10;
+    background: #222;
+    font-size: 3rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#closeDisclaimer {
+    font-size: 1.5rem;
+    width: 300px;
+    align-self: center;
+    margin-top: 4rem;
+}
+
 /* ION RANGE SLIDER MODIFICATIONS */
 
 .irs-handle {
