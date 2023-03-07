@@ -53,6 +53,8 @@ class Human {
         mesh.name = "HEAD";
         mesh.castShadow = true;
 
+        mesh.geometry.rotateY(-Util.deg2Rad(90));
+
         if(this.cubeHead && template.hasTexture){
             const GF = new THREE.PlaneGeometry(this.width, this.width),
                   MF = new THREE.MeshLambertMaterial({color: "bisque"}),
@@ -60,12 +62,12 @@ class Human {
 
             mesh.add(F);
             F.material.map = Handler.getTexture(template.name.replace(" ", "") + "_C");
-            F.position.set(this.width / 2 + 0.001, 0, 0);
-            F.rotation.set(0, Util.deg2Rad(90), 0);
+            F.position.set(0, 0, this.width / 2 + 0.001);
+            // F.rotation.set(0, Util.deg2Rad(90), 0);
         }else if(template.hasTexture){
             mesh.material.map = Handler.getTexture(template.name.replace(" ", ""));
         }
-        mesh.rotation.set(0, -Util.deg2Rad(90), 0);
+        // mesh.rotation.set(0, -Util.deg2Rad(90), 0);
         mesh.position.set(0, template.height / 4 + this.width / 2, 0);
         
         mesh.add(Human.genTextMesh(template.name, ["tag"], 
@@ -196,10 +198,12 @@ class Human {
         this._genAnimationValues();
 
         // Do idle animations
-        createjs.Tween.get(this, {loop: true})
-        .to({keyframe: 100}, 250)
-        .to({keyframe: 0}, 250)
-        .addEventListener("change", this._anim.bind(this));
+        this._idle = createjs.Tween.get(this, {loop: true})
+                     .to({keyframe: 100}, 250)
+                     .to({keyframe: 0}, 250);
+
+
+        this._idle.addEventListener("change", this._anim.bind(this));
     }
 
     get kf(){
@@ -210,6 +214,10 @@ class Human {
 
     get upper(){
         return this.body.children.find(e => e.name == "UPPER_BODY");
+    }
+
+    get head(){
+        return this.upper.children.find(e => e.name == "HEAD");
     }
 
     get arms(){
@@ -275,6 +283,8 @@ class Human {
         const [lA, rA] = this.arms,
               [lL, rL] = this.legs;
         
+        // head look at camera
+        this.head.lookAt(Handler.cam.position);
 
         switch(this.animation_state){
             case Human.anim.IDLE:
@@ -305,6 +315,7 @@ class Human {
                       
                 break;
             case Human.anim.DANCING:
+                0
                 break;
         }
     }
@@ -431,7 +442,10 @@ class Human {
         });
         
         Handler._refreshLabels();
-        console.log("REACHED HERE!");
+
+        // remove twin listener
+        createjs.Tween.removeTweens(this);
+        this._idle.removeEventListener("change", this._anim.bind(this));
     }
 }
 

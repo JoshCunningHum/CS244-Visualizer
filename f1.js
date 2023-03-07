@@ -15,16 +15,19 @@ const F1 = [{
     height: "165"
 }, {
     name: "Franco Pleños",
-    height: "160"
+    height: "160",
+    groupMate: true
 }, {
     name: "Jeño Flores",
     height: "165"
 }, {
     name: "Christian Roy Seville",
-    height: "177"
+    height: "177",
+    groupMate: true
 }, {
     name: "Winson Baring",
-    height: "167"
+    height: "167",
+    groupMate: true
 }, {
     name: "Marion Buhat",
     height: "164"
@@ -75,7 +78,8 @@ const F1 = [{
     height: "171"
 }, {
     name: "Jethan Kaelou Sarita",
-    height: "167"
+    height: "167",
+    groupMate: true
 }, {
     name: "Noel Alemaña",
     height: "153"
