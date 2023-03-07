@@ -2,6 +2,23 @@
 
 class Animation{
 
+    static autoContinue = [];
+
+    static addSkips(id){
+        if(this.hasContinue(id)) return;
+        this.autoContinue.push(id);
+    }
+
+    static removeSkip(id){
+        const index = this.autoContinue.findIndex(e => e == id);
+        if(index == -1) return;
+        this.autoContinue.splice(index, 1);
+    }
+
+    static hasContinue(id){
+        return this.autoContinue.some(e => e == id);
+    }
+
     cb = null;
     pauseWhenDone = false;
 
@@ -15,6 +32,11 @@ class Animation{
         this.delay = w;
         this.timeout = t;
         this.id = id || Util.genString(15);
+    }
+
+    label(str){
+        this.name = str;
+        return this;
     }
 
     togglePause(){
@@ -38,7 +60,7 @@ class Animation{
         .to(this.toObj, this.duration * Handler.a.config.timeMult)
         .wait(this.timeout)
         .call(() => {
-            if(this.pauseWhenDone){
+            if(this.pauseWhenDone && !Animation.hasContinue(this.name)){
                 Handler.pause()
             }
             Handler.a.done();
@@ -58,7 +80,6 @@ class AnimationQueue{
     queue = [];
     running = 0;
     paused = false;
-
     ongoing = null;
 
     static def = {
@@ -78,7 +99,6 @@ class AnimationQueue{
     check(){
         if(this.queue.length == 0) return;
         if(this.running > 0) return; // if still running animation
-        this.ongoing = null; // If nothing is running, delete the ongoing tweens
         if(this.paused && !this.config.overrideContinue){
             // console.log("ITS PAUSED");
             return;

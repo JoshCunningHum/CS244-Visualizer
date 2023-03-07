@@ -229,7 +229,6 @@ class Human {
         return this.body.children.filter(e => e.name != "UPPER_BODY");
     }
 
-
     get cam(){
         // for following purposes
         return this.body.children.find(e => e.name == "FOCUSING_CAM");
@@ -618,7 +617,7 @@ class HumanArray{
         ];
 
         // For pausing actions
-        if(pauseAfter) movement.push(Animation.pauseSequence);
+        if(pauseAfter) movement.push(Animation.pauseSequence.label("pause_swap"));
 
         // Seperate each phase
         Handler.addAnimation(movement.shift());
@@ -722,7 +721,7 @@ class HumanArray{
         })
 
         Handler.addAnimation(movement, stopAnimState);
-        if(pauseAfter) Handler.addAnimation(Animation.pauseSequence);
+        if(pauseAfter) Handler.addAnimation(Animation.pauseSequence.label("pause_partition"));
     }
 
     saveState(){
@@ -740,6 +739,9 @@ class HumanArray{
 
         this.fixIndex();
         this.arrange();
+        this.forEach(human => {
+            human.state = Human.state.UNDETERMINED;
+        })
     }
 
     backToState(){

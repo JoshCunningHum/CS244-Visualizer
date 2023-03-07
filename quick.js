@@ -26,7 +26,7 @@ class QuickSort{
         // Change color of the pivot
         Handler.addAnimation((new Animation(() => {
             p.state = Human.state.PIVOT;
-        }, 10, 0, 0)).togglePause());
+        }, 10, 0, 0)));
         
 
         return midIndex;
@@ -112,6 +112,17 @@ class QuickSort{
             const hLeft = arr.get(iLeft),
                   hRight = arr.get(iRight);
 
+            // Turn all items to undetermined except pivot
+            {
+                const stateChange = [];
+                arr.h.forEach(human => {
+                    stateChange.push(new Animation(() => {
+                        human.state = Human.state.UNDETERMINED;
+                    }, 5, 0, 0));
+                })
+                Handler.addAnimation(stateChange);
+            }
+
             // Set left and right state to compare left (since it get overriden)
             Handler.addAnimation(new Animation(() => {
                 hLeft.state = Human.state.COMPARINGLEFT;
@@ -119,7 +130,7 @@ class QuickSort{
             }))
 
             // Add a pausing animation after comparing
-            Handler.addAnimation(Animation.pauseSequence);
+            Handler.addAnimation(Animation.pauseSequence.label("pause_compare"));
 
             if(iLeft > iRight) break; // means that we found the position for the pivot
 
@@ -142,7 +153,7 @@ class QuickSort{
         const t = arr.get(iLeft); // pivot, making it green
         Handler.addAnimation((new Animation(() => {
             t.state = Human.state.CORRECT;
-        }, 10, 0, 0)).togglePause());
+        }, 10, 0, 0)));
 
         // RECURSION PART
         const [left, mid, right] = arr.separate(iLeft),

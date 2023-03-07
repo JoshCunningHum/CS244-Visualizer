@@ -75,6 +75,7 @@ $("#visualize").on("click", function(){
     list._updateFollower();
 })
 
+$("#autocont_cont").hide();
 $("#sortbtn").on("click", function(){
     $("#shufflebtn, #genElementCont").hide();
     $("#stopbtn, #contbtn").show();
@@ -84,10 +85,13 @@ $("#sortbtn").on("click", function(){
     QuickSort.sort(list);
     console.timeEnd("sorting");
 
+    $("#autocont_cont").show();
+
     Handler.addAnimation(new Animation(() => {
         $("#shufflebtn, #genElementCont").show();
         $("#stopbtn, #contbtn").hide();
         $(this).show();
+        $("#autocont_cont").hide();
     }, 10, 0, 0));
 })
 
@@ -165,4 +169,21 @@ $("#stopFollow").on("click", function(){
     $("#humanList, #followTarget").show();
     Handler.unFollow();
     if(Handler.a.queue.length == 0) $("#genElementCont").show();
+})
+
+// Skipping controls
+const SKIP = {
+    swap: false,
+    compare: false,
+    partition: false
+};
+
+["swap", "compare", "partition"].forEach(cont => {
+    $(`#skip_${cont}`).on("click", function(){
+        const type = this.id.split("_")[1];
+        SKIP[type] = this.checked;
+        Animation[this.checked ? "addSkips" : "removeSkip"](`pause_${type}`);
+        if(!this.checked) return;
+        if(Handler.a.ongoing?.name == `pause_${type}`) Handler.continue();
+    })
 })
