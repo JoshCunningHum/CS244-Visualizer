@@ -116,6 +116,7 @@ class QuickSort{
             {
                 const stateChange = [];
                 arr.h.forEach(human => {
+                    if(human.name == pivot.name) return;
                     stateChange.push(new Animation(() => {
                         human.state = Human.state.UNDETERMINED;
                     }, 5, 0, 0));
