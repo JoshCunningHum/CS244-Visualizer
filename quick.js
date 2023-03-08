@@ -110,13 +110,13 @@ class QuickSort{
             }
 
             const hLeft = arr.get(iLeft),
-                  hRight = arr.get(iRight);
+                  hRight = arr.get(iRight),
+                  piv = arr.get(arr.length - 1);
 
             // Turn all items to undetermined except pivot
             {
                 const stateChange = [];
                 arr.h.forEach(human => {
-                    if(human.name == pivot.name) return;
                     stateChange.push(new Animation(() => {
                         human.state = Human.state.UNDETERMINED;
                     }, 5, 0, 0));
@@ -128,6 +128,7 @@ class QuickSort{
             Handler.addAnimation(new Animation(() => {
                 hLeft.state = Human.state.COMPARINGLEFT;
                 hRight.state = Human.state.COMPARINGRIGHT;
+                piv.state = Human.state.PIVOT;
             }))
 
             // Add a pausing animation after comparing
