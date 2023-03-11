@@ -321,6 +321,10 @@ class Human {
         return this.height * 3 / 4;
     }
 
+    get _yLevelVector(){
+        return this.body.position.clone().setY(this._yLevel);
+    }
+
     _level(){
         // Level the body to the ground
         this.body.position.set(0, this._yLevel, 0);
@@ -339,6 +343,61 @@ class Human {
         return new Animation(obj => {
             this.body.position.set(...this.pos.arr);
         }, duration).from(this.pos).to(pos);
+    }
+
+    // buffers for this function
+    buffer = {
+        mfc_angle: 0, // For tracking angle progress
+        mfc_curve: null,
+        mfc_center: null
+    }
+
+    // actually move the human from an axis
+    moveFromCenter({pos, angle = 90, duration = 500}){
+        Handler.addAnimation(this._moveFromCenter({pos, angle, duration}));
+    }
+
+    // pos = the position of which the center of the circle is in
+    _moveFromCenter({pos, angle = 90, cc = false, duration = 500, absolute = true}){ // always relative
+        if(!absolute) pos.add(this.pos);
+        pos.y = this._yLevel;
+
+        return new Animation(tween => {
+            const curve = this.buffer.mfc_curve,
+                  center = this.buffer.mfc_center,
+                  t = tween.target;
+
+            if(curve == null) return;
+            const {x, y} = curve.getPoint(t.position / t.duration);
+
+            // set position
+            this.pos.set({x: x, y: this._yLevel, z: y})
+            this.body.position.set(...this.pos.arr);
+
+            // look at center
+            this.body.lookAt(...center.arr);
+
+        }, duration).from(this.buffer).to({mfc_angle: angle})
+        .atFirst(() => {
+            // length diff of center position and human position
+            const dist = pos.dist(this.pos),
+                  rAngle = Util.deg2Rad(angle),
+                  sAngle = pos.angleTo(this.pos, 1);
+    
+            // create the curve path to follow later
+            const curve = new THREE.ArcCurve(
+                pos.x, pos.z, dist,
+                sAngle, sAngle + rAngle,
+                cc, 0
+            );
+
+            this.buffer.mfc_curve = curve;
+            this.buffer.mfc_center = pos;
+        }).onceDone(() => {
+            this.buffer.mfc_angle = 0;
+            this.buffer.mfc_curve = null;
+            this.buffer.mfc_center = null;
+        })
     }
 
     _rotateBuffer = 0;
@@ -431,7 +490,7 @@ class Human {
 class HumanArray{
     static gap = 5;
     static recurse_gap = Human.thick * 7;
-    static walk_gap = Human.width * 3;
+    static walk_gap = Human.width * 7;
 
     h = [];
     pos = new Position({x: 0, y: 0, z: 0});
@@ -558,50 +617,73 @@ class HumanArray{
         // animation
         const d = .10 * 1000,
               s = HumanArray.walk_gap,
+              g = HumanArray.gap / 2,
               former = this.posAtIndex(pos1),
-              latter = this.posAtIndex(pos2);
+              latter = this.posAtIndex(pos2),
+              mid = former.mid(latter),
+              gapFromEach = Math.abs(pos1 - pos2);
+
+        // modify mid to go at proper z position
+        mid.add({z: s})
 
         const movement = [
-            // For Animation Purposes
-            l._rotate({angle: -180, duration: 50}),
-            
+
+            // set both humans to walking mode
             f._getAnimationStateChange(Human.anim.WALKING),
             l._getAnimationStateChange(Human.anim.WALKING),
 
-            // First Phase
+            // First Phase (Go Forward)
             f._move({pos: former.clone.add({z: s}), duration: d}),
-            l._move({pos: latter.clone.add({z: -s}), duration: d}),
+            l._move({pos: latter.clone.add({z: s}), duration: d}),
 
+            // Rotate to face each other
             f._rotate({angle: 90}),
             l._rotate({angle: -90}),
 
-            // Second Phase
-            f._move({pos: latter.clone.add({z: s}), duration: d * 2 * Math.abs(pos1 - pos2)}),
-            l._move({pos: former.clone.add({z: -s}), duration: d * 2 * Math.abs(pos1 - pos2)}),
+            // Second Phase A (Walk infront of each other)
+            f._move({pos: mid.clone.add({x: -g}), duration: d * gapFromEach}),
+            l._move({pos: mid.clone.add({x: g}), duration: d * gapFromEach}),
 
+            // set both humans to swap dance mode
+
+            // Second Phase B (Walk in a circle from each other)
+            f._moveFromCenter({pos: mid.clone, angle: 180, duration: d * 10}),
+            l._moveFromCenter({pos: mid.clone, angle: 180, duration: d * 10}),
+
+            // rotate both humans
+            f._rotate({angle: -90}),
+            l._rotate({angle: 90}),
+
+            // set both humans to walking mode again
+
+
+            // Second Phase C (Walk to the former position of each other)
+            f._move({pos: latter.clone.add({z: s}), duration: d * 2 * gapFromEach}),
+            l._move({pos: former.clone.add({z: s}), duration: d * 2 * gapFromEach}),
+
+            // Rotate to go back at array
             f._rotate({angle: 180}),
-            l._rotate({angle: 0}),
+            l._rotate({angle: 180}),
 
-            // Third Phase
+            // Third Phase (Walk back to the line)
             f._move({pos: latter.clone.add({z: 0}), duration: d}),
             l._move({pos: former.clone.add({z: 0}), duration: d}),
             
 
-            // For Animation Purposes
+            // set both humans to idle
             f._getAnimationStateChange(Human.anim.IDLE),
             l._getAnimationStateChange(Human.anim.IDLE),
 
-            
+            // rotate both to face front
             f._rotate({angle: 0, duration: 50}),
+            l._rotate({angle: 0, duration: 50}),
         ];
 
         // For pausing actions
         if(pauseAfter) movement.push(Animation.pauseSequence.label("pause_swap"));
 
         // Seperate each phase
-        Handler.addAnimation(movement.shift());
-        for(let i = 0; i < 3 + 4; i++) Handler.addAnimation(movement.splice(0, 2));
-        Handler.addAnimation(movement.shift());
+        for(let i = 0; i < 11; i++) Handler.addAnimation(movement.splice(0, 2));
         if(pauseAfter) Handler.addAnimation(movement.splice(0, 1));
 
         // reassignment

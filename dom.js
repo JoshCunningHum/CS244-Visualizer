@@ -195,7 +195,7 @@ $("#closeDisclaimer").on("click", function(){
 
 function pan_cam(direction){
 
-    const pan_intensity = 20, 
+    const pan_intensity = 10, 
           pan_duration = 250,
           pan_ease = createjs.Ease.quartInOut;
 
@@ -229,7 +229,6 @@ function pan_cam(direction){
     }
 
           tween.addEventListener("change", function(){
-            console.log(buffer);
     
             Handler.cam.position.copy(buffer);
             Handler.controls.update();

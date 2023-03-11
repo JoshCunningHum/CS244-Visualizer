@@ -210,7 +210,7 @@ class Handler{
 
         // set fake_cam as what the handler is currently focusing
         this.focusing = fake_cam;
-
+        
     }
 
     static unFollow(){

@@ -6,6 +6,14 @@ class Util{
         return Array(length).fill(0).map(x => this.genChar()).join("");
     }
 
+    static pyth(a, b) {
+        return Math.sqrt(a ** 2 + b ** 2);
+    }
+
+    static pyth3D(a, b, c) {
+        return Math.sqrt(a ** 2 + b ** 2 + c ** 2);
+    }
+
     static rad2Deg = (deg) => 180 * deg / Math.PI;
     static deg2Rad = (rad) => Math.PI * rad / 180;
     
@@ -50,12 +58,12 @@ class Vector3D {
     }
 
     static findXYZ({ mag, xy, xz }) {
-        const AB = mag * Math.cos(Util.rad(xy));
+        const AB = mag * Math.cos(Util.rad2Deg(xy));
 
         return [
-            AB * Math.cos(Util.rad(xz)),
-            -AB * Math.sin(Util.rad(xz)),
-            mag * Math.sin(Util.rad(xy))
+            AB * Math.cos(Util.rad2Deg(xz)),
+            -AB * Math.sin(Util.rad2Deg(xz)),
+            mag * Math.sin(Util.rad2Deg(xy))
         ]
     }
 
@@ -86,8 +94,8 @@ class Vector3D {
 
         return {
             mag: this.mag,
-            xy: Util.deg(Math.atan2(this.y, XZh)),
-            xz: -Util.deg(x_z),
+            xy: Util.deg2Rad(Math.atan2(this.y, XZh)),
+            xz: -Util.deg2Rad(x_z),
             mode: "A"
         }
     }
@@ -135,10 +143,37 @@ class Position {
     static LOCKY = false;
     static LOCKZ = false;
 
-    constructor({ x, y, z }) {
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
+    constructor(obj, ay = null, az = null) {
+
+        if(ay != null && az != null){
+            this.x = obj;
+            this.y = ay;
+            this.z = az;
+            return;
+        }
+
+        this.x = obj.x || 0;
+        this.y = obj.y || 0;
+        this.z = obj.z || 0;
+    }
+
+    // axis [0, 1, 2] = [x, y, z]
+    angleTo(pos, axis = null){
+        // get diff vector first
+        const [dx, dy, dz] = this.diff(pos);
+
+        // returns 3 angles if axis is not specified
+        if(axis == null){
+            return [
+                Math.atan2(dy, dz),
+                Math.atan2(dz, dx),
+                Math.atan2(dy, dx)
+            ]
+        }
+
+        return axis == 0 ? Math.atan2(dy, dz) :
+               axis == 1 ? Math.atan2(dz, dx) :
+               Math.atan2(dy, dx);
     }
 
     diff(pos) {
@@ -147,6 +182,22 @@ class Position {
             pos.y - this.y,
             pos.z - this.z
         ]
+    }
+
+    // the middle of this position and another position
+    mid(pos){
+        // get a vector from the difference of the two
+        const diff = this.diff(pos),
+              v = new Vector3D({x: diff[0], y: diff[1], z: diff[2]});
+
+        // cut by half the vector
+        v.scale(0.5);
+
+        // create position from vector
+        const halfDiff = new Position(v);
+
+        // add it to a clone of this and return
+        return this.clone.add({pos: halfDiff});
     }
 
     dist(pos) {

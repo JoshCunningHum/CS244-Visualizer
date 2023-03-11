@@ -54,8 +54,21 @@ class Animation{
         return this;
     }
 
+    atFirst(cb){
+        this.first = cb;
+        return this;
+    }
+
+    onceDone(cb){
+        this.done = cb;
+        return this;
+    }
+
     execute(){
         const tween = createjs.Tween.get(this.fromObj)
+        .call(() => {
+            if(this.first) this.first();
+        })
         .wait(this.delay)
         .to(this.toObj, this.duration * Handler.a.config.timeMult)
         .wait(this.timeout)
@@ -63,6 +76,7 @@ class Animation{
             if(this.pauseWhenDone && !Animation.hasContinue(this.name)){
                 Handler.pause()
             }
+            if(this.done) this.done();
             Handler.a.done();
         });
 
