@@ -32,13 +32,7 @@ class Human {
     height = 3;
 
     _headDispose(){
-        const head = this.head;
-        this.upper.remove(head);
-        head.material.dispose();
-        head.geometry.dispose();
-        head.children.forEach(mesh => {
-            head.remove(mesh);
-        })
+        Util.deep_dispose(this.head, this.upper);
         Handler._refreshLabels();
     }
 
@@ -198,6 +192,10 @@ class Human {
         this._genAnimationValues();
 
         // Do idle animations
+        const enable_animation = true;
+
+        if(!enable_animation) return;
+
         this._idle = createjs.Tween.get(this, {loop: true})
                      .to({keyframe: 100}, 250)
                      .to({keyframe: 0}, 250);
@@ -419,26 +417,7 @@ class Human {
     // remove self in Handler
     delete(){
         // Dispose Parts
-        Handler.delete(this.body);
-        this.body.children.forEach(e => {
-            this.body.remove(e);
-
-            switch(e.name){
-                case "UPPER_BODY": // arms, head, and body
-                    e.children.forEach(part => {
-                        e.remove(part);
-                        part.material.dispose();
-                        part.geometry.dispose();
-                    })
-                    // WARNING
-                case "L_LEG":
-                case "R_LEG":
-                    e.material.dispose();
-                    e.geometry.dispose();
-                    break;
-            }
-            
-        });
+        Util.deep_dispose(this.body)
         
         Handler._refreshLabels();
 

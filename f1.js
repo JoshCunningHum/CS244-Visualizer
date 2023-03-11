@@ -122,11 +122,15 @@ const parseName = (name) => {
 const F1_enator = (index) => {
     const s = F1[index], h = parseFloat(s.height);
 
-    return new Human({
+    const human = new Human({
         name: parseName(s.name),
         value: s.height,
         height: Util.heightCalc(h)
     });
+
+    if(F1[index].groupMate) human.groupMate = true;
+
+    return human;
 } 
 
 const F1Obs = [];

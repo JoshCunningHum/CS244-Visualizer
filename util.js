@@ -14,6 +14,23 @@ class Util{
     static heightCalc = (val) => 3 * (val / 160)**this.heightDIffIntensity;
 
     static genInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
+
+    static deep_dispose(obj, parent = Handler){
+        if(parent == Handler)parent.delete(obj);
+        else parent.remove(obj);
+
+        if(obj.children?.length){
+            obj.children.forEach(c => {
+                this.deep_dispose(c, obj);
+            })
+        }
+
+        if(obj.isMesh){
+            obj.material.dispose();
+            obj.material.dispose();
+        }
+
+    }
 }
 
 class Vector3D {
