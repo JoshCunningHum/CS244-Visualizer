@@ -151,11 +151,12 @@ class Handler{
 
         // Orbit Controls
         this.controls = new THREE.OrbitControls(this.cam, this.label_renderer.domElement);
-        this.controls.maxPolarAngle = Math.PI / 2;
+        this.controls.maxPolarAngle = Util.deg2Rad(89);
+        this.controls.maxAzimuthAngle = Util.deg2Rad(60);
+        this.controls.minAzimuthAngle = Util.deg2Rad(-60);
 
         // Set initial camera position
         this.cam.position.set(-14, 9, 17);
-        this.cam.lookAt(0, 0, 10);
         this.controls.update();
 
         // For rendering

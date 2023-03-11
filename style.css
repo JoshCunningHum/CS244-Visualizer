@@ -244,6 +244,11 @@ fieldset legend {
     margin-top: 4rem;
 }
 
+#view_controls {
+    display: flex;
+    gap: .25rem;
+}
+
 /* ION RANGE SLIDER MODIFICATIONS */
 
 .irs-handle {

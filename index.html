@@ -67,7 +67,7 @@
                 <option value="null">--- Select Human ---</option>
             </select>
             <button class="btn mt-1" id="followTarget">Follow</button>
-            <button class="btn btn-danger mt-1" id="stopFollow">Stop Following</button>
+            <button class="btn btn-danger mt-1" id="stopFollow">Unfollow</button>
 
             <!-- Sorting Automation -->
             <div id="autocont_cont"> 
@@ -88,6 +88,12 @@
                     <label for="skip_partition">Partitioning</label>
                 </div>
 
+            </div>
+
+            <label class="desc block mt-1">View Controls</label>
+            <div id="view_controls" class="mt-1">
+                <button class="btn btn-warning" onclick="pan_cam('LEFT')"><-</button>
+                <button class="btn btn-warning" onclick="pan_cam('RIGHT')">-></button>
             </div>
 
         </div>

@@ -192,3 +192,71 @@ const SKIP = {
 $("#closeDisclaimer").on("click", function(){
     $(this).parent().hide();
 })
+
+function pan_cam(direction){
+
+    const pan_intensity = 20, 
+          pan_duration = 250,
+          pan_ease = createjs.Ease.quartInOut;
+
+    const buffer = Handler.cam.position.clone(),
+          tween = createjs.Tween.get(buffer),
+          bufferControl = Handler.controls.target.clone(),
+          tweenControl = createjs.Tween.get(bufferControl);
+
+
+    switch(direction){
+        case "LEFT":
+            tween.to(buffer.clone()
+                .add(new THREE.Vector3(-pan_intensity, 0, 0)),
+                pan_duration, pan_ease
+            )
+            tweenControl.to(bufferControl.clone()
+                .add(new THREE.Vector3(-pan_intensity, 0, 0)),
+                pan_duration, pan_ease
+            )
+            break;
+        case "RIGHT":
+            tween.to(buffer.clone()
+                .add(new THREE.Vector3(pan_intensity, 0, 0)),
+                pan_duration, pan_ease
+            )
+            tweenControl.to(bufferControl.clone()
+                .add(new THREE.Vector3(pan_intensity, 0, 0)),
+                pan_duration, pan_ease
+            )
+            break;
+    }
+
+          tween.addEventListener("change", function(){
+            console.log(buffer);
+    
+            Handler.cam.position.copy(buffer);
+            Handler.controls.update();
+        })
+    
+        tweenControl.addEventListener("change", function(){
+            Handler.controls.target.copy(bufferControl);
+            Handler.controls.update();
+        })
+}
+
+$(this).on("keydown", function(e){
+    if(![37, 38, 39, 40].includes(e.keyCode)) return;
+
+    switch(e.keyCode){
+        case 37: // Left Arrow
+            pan_cam("LEFT");
+            console.log("LEFT ARROW");
+            break;
+        case 38: // Up Arrow
+        break;
+            break;
+        case 39: // Right Arrow
+            pan_cam("RIGHT");
+            console.log("RIGHT ARROW");
+            break;
+        case 40: // Down Arrow
+            break;
+    }
+})
