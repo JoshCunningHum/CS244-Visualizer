@@ -22,9 +22,9 @@ class Human {
     static anim = {
         IDLE: 0,
         WALKING: 1,
-        DANCING: 2
-        
-        // TODO: Add more dancing states
+        DANCINGSWAP: 2,
+        DANCINGFINISH: 3,
+        DANCINGFINISHGROUP: 4
     }
 
     value = 1;
@@ -157,7 +157,7 @@ class Human {
     i = 0;
     body;
     keyframe = 0;
-    at = Human.anim.IDLE;
+    at = Human.anim.DANCINGSWAP;
 
     get index(){
         return this.i;
@@ -242,6 +242,7 @@ class Human {
         rL.rotation.set(0, 0, 0);
 
         this.body.rotation.set(0, 0, 0);
+        this.upper.rotation.set(0, 0, 0);
     }
 
     set animation_state(val){
@@ -255,7 +256,9 @@ class Human {
 
     _genAnimationValues(){
         const maxidlesway = 3,
-              maxwalksway = 45;
+              maxwalksway = 45,
+              minDanceSwap = -30,
+              maxDanceSwap = 30;
 
         this.idle = {
             minArmSway: -Math.random() * maxidlesway,
@@ -268,6 +271,15 @@ class Human {
             minLegSway: -maxwalksway * 0.8,
             maxLegSway: maxwalksway * 0.8,
         }
+
+        this.dancing = {
+            swap: {
+                minBody: minDanceSwap,
+                maxBody: maxDanceSwap,
+                minWave: 0,
+                maxWave: 30
+            }
+        }
     }
 
     _getAnimationStateChange(state){
@@ -278,32 +290,44 @@ class Human {
 
     _anim(){
         const [lA, rA] = this.arms,
-              [lL, rL] = this.legs;
+              [lL, rL] = this.legs,
+              kF = this.kf, key = this.keyframe;
         
         // head look at camera
         this.head.lookAt(Handler.cam.position);
 
+        const mnwas = this.walking.minArmSway,
+              mxwas = this.walking.maxArmSway,
+              mnwls = this.walking.minLegSway,
+              mxwls = this.walking.maxLegSway,
+              wAdiff = mxwas - mnwas,
+              wLdiff = mxwls - mnwls;
+
+        const calc_walk_arm_sway = Util.deg2Rad(mnwas + wAdiff * (key / 100)),
+            calc_walk_leg_sway = Util.deg2Rad(mnwls + wLdiff * (key / 100));
+
+        const mndsb = this.dancing.swap.minBody,
+            mxdsb = this.dancing.swap.maxBody,
+            sBdiff = mxdsb - mndsb,
+            mndsw = this.dancing.swap.minWave,
+            mxdsw = this.dancing.swap.maxWave,
+            sWdiff = mxdsw - mndsw;
+
+        const calc_swap_body_sway = Util.deg2Rad(mndsb + sBdiff * (key / 100)),
+            calc_swap_wave_sway = Util.deg2Rad(mndsw + sWdiff * (key / 100));
+
         switch(this.animation_state){
             case Human.anim.IDLE:
                 const mnias = this.idle.minArmSway,
-                      mxias = this.idle.maxArmSway,
-                      idiff = mxias - mnias;
-
-                const calc_idle_sway = Util.deg2Rad(mnias + idiff * (this.kf / 100));
+                mxias = this.idle.maxArmSway,
+                idiff = mxias - mnias;
+        
+                const calc_idle_sway = Util.deg2Rad(mnias + idiff * (kF / 100));
 
                 lA.rotation.set( calc_idle_sway, 0, 0);
                 rA.rotation.set( -calc_idle_sway, 0, 0);
                 break;
             case Human.anim.WALKING:
-                const mnwas = this.walking.minArmSway,
-                      mxwas = this.walking.maxArmSway,
-                      mnwls = this.walking.minLegSway,
-                      mxwls = this.walking.maxLegSway,
-                      wAdiff = mxwas - mnwas,
-                      wLdiff = mxwls - mnwls;
-
-                const calc_walk_arm_sway = Util.deg2Rad(mnwas + wAdiff * (this.keyframe / 100)),
-                      calc_walk_leg_sway = Util.deg2Rad(mnwls + wLdiff * (this.keyframe / 100));
 
                 lA.rotation.set(calc_walk_arm_sway, 0, 0);
                 rA.rotation.set( -calc_walk_arm_sway, 0, 0);
@@ -311,8 +335,30 @@ class Human {
                 rL.rotation.set(-calc_walk_leg_sway, 0, 0);
                       
                 break;
-            case Human.anim.DANCING:
-                0
+            case Human.anim.DANCINGSWAP:
+                // set left arm rotation forward
+                lA.rotation.set(Util.deg2Rad(-90), 0, 0);
+
+                this.upper.rotation.set(0, 0, calc_swap_body_sway);
+                rA.rotation.set(Util.deg2Rad(-145), 0, calc_swap_wave_sway * 5);
+
+                lL.rotation.set(calc_walk_leg_sway, 0, 0);
+                rL.rotation.set(-calc_walk_leg_sway, 0, 0);
+                break;
+            case Human.anim.DANCINGFINISH:
+                lA.rotation.set(Util.deg2Rad(-90) + calc_walk_arm_sway * .25, 0, 0);
+                rA.rotation.set(Util.deg2Rad(-90) - calc_walk_arm_sway * .25, 0, 0);
+
+                this.upper.rotation.set(0, 0, calc_swap_body_sway * 0.25);
+
+                break;
+            case Human.anim.DANCINGFINISHGROUP:
+                this.body.rotation.set(Util.deg2Rad(180), key / 100 * Util.deg2Rad(360), 0);
+
+                lA.rotation.set(0, 0, Util.deg2Rad(-90));
+                rA.rotation.set(0, 0, Util.deg2Rad(90));
+                lL.rotation.set(0, 0, Util.deg2Rad(-90));
+                rL.rotation.set(0, 0, Util.deg2Rad(90));
                 break;
         }
     }
@@ -426,9 +472,13 @@ class Human {
         switch(state){
             case Human.state.CORRECT:
                 color = new THREE.Color(0x45f500);
+                // if correct, then also set animation state
+                this.animation_state = this.groupMate ? Human.anim.DANCINGFINISHGROUP : Human.anim.DANCINGFINISH;
+
                 break;
             case Human.state.UNDETERMINED:
                 color = new THREE.Color("bisque");
+                this.animation_state = Human.anim.IDLE;
                 break;
             case Human.state.TEMP:
                 color = new THREE.Color("hsl(105, 0%, 30%)");
@@ -645,17 +695,21 @@ class HumanArray{
             l._move({pos: mid.clone.add({x: g}), duration: d * gapFromEach}),
 
             // set both humans to swap dance mode
+            f._getAnimationStateChange(Human.anim.DANCINGSWAP),
+            l._getAnimationStateChange(Human.anim.DANCINGSWAP),
 
             // Second Phase B (Walk in a circle from each other)
             f._moveFromCenter({pos: mid.clone, angle: 180, duration: d * 10}),
             l._moveFromCenter({pos: mid.clone, angle: 180, duration: d * 10}),
 
+
+            // set both humans to walking mode again
+            f._getAnimationStateChange(Human.anim.WALKING),
+            l._getAnimationStateChange(Human.anim.WALKING),
+
             // rotate both humans
             f._rotate({angle: -90}),
             l._rotate({angle: 90}),
-
-            // set both humans to walking mode again
-
 
             // Second Phase C (Walk to the former position of each other)
             f._move({pos: latter.clone.add({z: s}), duration: d * 2 * gapFromEach}),
@@ -683,7 +737,7 @@ class HumanArray{
         if(pauseAfter) movement.push(Animation.pauseSequence.label("pause_swap"));
 
         // Seperate each phase
-        for(let i = 0; i < 11; i++) Handler.addAnimation(movement.splice(0, 2));
+        for(let i = 0; i < 13; i++) Handler.addAnimation(movement.splice(0, 2));
         if(pauseAfter) Handler.addAnimation(movement.splice(0, 1));
 
         // reassignment
@@ -778,7 +832,11 @@ class HumanArray{
         })
 
         const stopAnimState = this.h.map(i => {
-            return i._getAnimationStateChange(Human.anim.IDLE);
+            return i._getAnimationStateChange(
+                i.state == Human.state.CORRECT && i.groupMate ? Human.anim.DANCINGFINISHGROUP :
+                i.state == Human.state.CORRECT ? Human.anim.DANCINGFINISH :
+                Human.anim.IDLE
+                );
         })
 
         Handler.addAnimation(movement, stopAnimState);
